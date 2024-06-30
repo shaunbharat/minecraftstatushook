@@ -1,0 +1,21 @@
+name: MinecraftStatusHook
+version: '${project.version}'
+main: io.github.shaunbharat.minecraftstatushook.MinecraftStatusHook
+api-version: '1.20'
+prefix: MinecraftStatusHook
+load: STARTUP
+authors: [Shaun Bharat]
+description: A Minecraft server plugin that sends status information to a Discord webhook, and enforces player whitelists for offline servers.
+website: https://github.com/shaunbharat/minecraftstatushook
+
+commands:
+  setdiscordwebhook:
+    description: "Set the Discord webhook that MinecraftStatusHook connects to."
+    usage: "/<command> <webhook-url>"
+    permission: "minecraftstatushook.setdiscordwebhook"
+    permission-message: "You do not have permission to set the Discord webhook."
+  potd:
+    description: "Refresh the password of the day."
+    usage: "/<command>"
+    permission: "minecraftstatushook.potd"
+    permission-message: "You do not have permission to refresh the password of the day."
