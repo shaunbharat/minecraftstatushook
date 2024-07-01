@@ -41,3 +41,9 @@ The password of the day is a simple way to whitelist players.
 - Until the correct password is entered, players won't be able to move or interact with the server.
 - Players are kicked on incorrect passwords.
 - The password can be refreshed with `/potd`.
+
+## License
+
+There is currently no license.
+
+Copyright (c) 2024 Shaun Bharat. All rights reserved.
