@@ -16,6 +16,11 @@ commands:
     permission-message: "You do not have permission to set the Discord webhook."
   potd:
     description: "Refresh the password of the day."
-    usage: "/<command>"
+    usage: "/<command> <new-password>"
     permission: "minecraftstatushook.potd"
     permission-message: "You do not have permission to refresh the password of the day."
+  togglerefreshpotd:
+    description: "Toggle automatic refreshing of the password of the day."
+    usage: "/<command>"
+    permission: "minecraftstatushook.togglerefreshpotd"
+    permission-message: "You do not have permission to toggle automatic refreshing of the password of the day."

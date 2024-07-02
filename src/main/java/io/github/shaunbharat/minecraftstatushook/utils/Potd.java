@@ -22,13 +22,26 @@ public class Potd {
 
     public void setPotd(String potd) {
         plugin.getConfig().set("potd", potd);
+        MinecraftStatusHook.webhook.sendEmbed("** Password of the Day **", "The password has been set to: \"" + potd + "\"", Color.ORANGE);
+        plugin.saveConfig();
+    }
+
+    public boolean getRefreshPotd() {
+        return plugin.getConfig().getBoolean("refresh-potd");
+    }
+
+    public void setRefreshPotd(boolean refreshPotd) {
+        plugin.getConfig().set("refresh-potd", refreshPotd);
         plugin.saveConfig();
     }
 
     public String generatePotd() {
+        // If refresh-potd is set to false, return the current password of the day, and don't generate a new one.
+        if (getRefreshPotd()) {
+            return getPotd();
+        }
         String potd = UUID.randomUUID().toString().replace("-", "").substring(0, 8);
         setPotd(potd);
-        MinecraftStatusHook.webhook.sendEmbed("** Password of the Day **", "The password has been set to: \"" + potd + "\"", Color.ORANGE);
         return potd;
     }
 }

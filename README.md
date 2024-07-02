@@ -5,7 +5,8 @@ A Minecraft server plugin (1.20.4) that sends server updates to a Discord webhoo
 ## Commands
 
 - `/setdiscordwebhook <webhook-url>`: Sets the Discord webhook that MinecraftStatusHook will send updates to.
-- `/potd`: Refreshes the password of the day, and sends it to the Discord webhook.
+- `/potd [<new-password>]`: Refreshes the password of the day, and sends it to the Discord webhook.
+- `/togglerefreshpotd`: Toggles whether the password of the day is refreshed on server start and every 24 hours automatically.
 
 ## Features
 
