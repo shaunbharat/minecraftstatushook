@@ -8,12 +8,15 @@ import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.*;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -23,6 +26,8 @@ public class PlayerListener implements Listener {
     private final MinecraftStatusHook plugin;
     private final Webhook webhook = MinecraftStatusHook.webhook;
     private final Potd potd = MinecraftStatusHook.potd;
+
+    private final PlainTextComponentSerializer serializer = PlainTextComponentSerializer.plainText();
 
     private final Set<UUID> playersWaiting = new HashSet<>();
 
@@ -49,6 +54,40 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler
+    public void onPlayerChat(AsyncChatEvent event) {
+        if (playersWaiting.contains(event.getPlayer().getUniqueId())) {
+            event.setCancelled(true);
+            String messageContent = serializer.serialize(event.message());
+            if (messageContent.equals(potd.getPotd())) {
+                playersWaiting.remove(event.getPlayer().getUniqueId());
+            } else {
+                // Cannot kick a player from an async event. Must be passed to the main server thread to be executed.
+                Bukkit.getScheduler().runTask(plugin, () -> event.getPlayer().kick(Component.text("Incorrect password")));
+            }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+        Player player = event.getPlayer();
+        String message = player.getName() + " died (unknown cause).";
+        Component deathMessage = event.deathMessage();
+        if (deathMessage != null) {
+            message = serializer.serialize(deathMessage);
+        }
+
+        String xp = event.getDroppedExp() + " XP lost.";
+        StringBuilder inventory = new StringBuilder();
+        for (ItemStack item : event.getDrops()) {
+            String itemType = item.getType().toString();
+            int itemAmount = item.getAmount();
+            String itemEnchants = item.getEnchantments().toString();
+            inventory.append(itemType).append(" x").append(itemAmount).append(" ").append(itemEnchants).append("\n");
+        }
+        webhook.sendEmbed(null, message + "\n\n" + xp + "\n\nItems:\n\n" + inventory, Color.RUBY);
+    }
+
+    @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
         if (playersWaiting.contains(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
@@ -63,16 +102,32 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler
-    public void onPlayerChat(AsyncChatEvent event) {
+    public void onPlayerDrop(PlayerDropItemEvent event) {
         if (playersWaiting.contains(event.getPlayer().getUniqueId())) {
             event.setCancelled(true);
-            String messageContent = PlainTextComponentSerializer.plainText().serialize(event.message());
-            if (messageContent.equals(potd.getPotd())) {
-                playersWaiting.remove(event.getPlayer().getUniqueId());
-            } else {
-                // Cannot kick a player from an async event. Must be passed to the main server thread to be executed.
-                Bukkit.getScheduler().runTask(plugin, () -> event.getPlayer().kick(Component.text("Incorrect password")));
-            }
+        }
+    }
+
+    @EventHandler
+    public void onPlayerPickup(EntityPickupItemEvent event) {
+        Entity entity = event.getEntity();
+        if (entity instanceof Player && playersWaiting.contains(entity.getUniqueId())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onPlayerInteractEntity(PlayerInteractEntityEvent event) {
+        if (playersWaiting.contains(event.getPlayer().getUniqueId())) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void onPlayerDamage(EntityDamageEvent event) {
+        Entity entity = event.getEntity();
+        if (entity instanceof Player && playersWaiting.contains(entity.getUniqueId())) {
+            event.setCancelled(true);
         }
     }
 }
